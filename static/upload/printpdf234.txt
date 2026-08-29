@@ -1,0 +1,16 @@
+<script type = "text/javascript">
+            function PrintPanel() {
+                var panel = document.getElementById("<%=pnlContents.ClientID %>");
+              
+                printWindow.document.write(panel.innerHTML);
+                printWindow.document.write('</body></html>');
+                printWindow.document.close();
+                setTimeout(function () {
+                    printWindow.print();
+                }, 500);
+                return false;
+            }
+    </script>
+
+ <asp:Button ID="btnPrint" runat="server" onclick="btnPrint_Click" 
+                    OnClientClick="return PrintPanel();" Text="Print" />

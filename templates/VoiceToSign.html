@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Voice to Sign Converter</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8" />
+    <link href="static/css/bootstrap.css" type="text/css" rel="stylesheet" media="all">
+    <link href="static/css/fontawesome-all.min.css" type="text/css" rel="stylesheet" media="all">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container-main {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 900px;
+            width: 100%;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            color: #333;
+            font-size: 2.5em;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .btn-voice {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .btn-voice:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-voice:active {
+            transform: translateY(0);
+        }
+        
+        .btn-clear {
+            background: #dc3545;
+        }
+        
+        .btn-clear:hover {
+            background: #c82333;
+            box-shadow: 0 5px 15px rgba(220, 53, 69, 0.4);
+        }
+        
+        .recording-indicator {
+            display: none;
+            align-items: center;
+            gap: 10px;
+            color: #dc3545;
+            font-weight: 600;
+        }
+        
+        .recording-indicator.active {
+            display: flex;
+        }
+        
+        .pulse {
+            width: 12px;
+            height: 12px;
+            background: #dc3545;
+            border-radius: 50%;
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+        
+        .text-input-section {
+            margin-bottom: 30px;
+        }
+        
+        .text-input-section label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 1.05em;
+        }
+        
+        .text-display {
+            background: #f8f9fa;
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            padding: 15px;
+            color: #333;
+            font-size: 1.2em;
+            word-break: break-word;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .signs-section {
+            margin-top: 30px;
+        }
+        
+        .signs-section h3 {
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+        
+        .signs-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 15px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        .sign-item {
+            text-align: center;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #dee2e6;
+            transition: all 0.3s ease;
+        }
+        
+        .sign-item:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+            transform: translateY(-5px);
+        }
+        
+        .sign-letter {
+            font-weight: 700;
+            font-size: 1.5em;
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+        
+        .sign-image {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 5px;
+            background: #e9ecef;
+        }
+        
+        .error-msg {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            display: none;
+        }
+        
+        .error-msg.show {
+            display: block;
+        }
+        
+        .success-msg {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            display: none;
+        }
+        
+        .success-msg.show {
+            display: block;
+        }
+        
+        .no-signs {
+            text-align: center;
+            color: #999;
+            padding: 40px;
+            font-size: 1.1em;
+        }
+        
+        .back-link {
+            text-align: center;
+            margin-top: 30px;
+        }
+        
+        .back-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+        
+        .back-link a:hover {
+            color: #764ba2;
+        }
+        
+        @media (max-width: 600px) {
+            .container-main {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .signs-gallery {
+                grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+                gap: 10px;
+                padding: 15px;
+            }
+            
+            .sign-image {
+                width: 70px;
+                height: 70px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container-main">
+        <div class="header">
+            <h1>🎤 Voice to Sign Converter</h1>
+            <p>Speak and see the corresponding sign language letters</p>
+        </div>
+        
+        <div class="controls">
+            <button class="btn-voice" id="startBtn">
+                <span>🎤</span>
+                <span>Start Recording</span>
+            </button>
+            <button class="btn-voice btn-clear" id="clearBtn">
+                <span>🗑️</span>
+                <span>Clear</span>
+            </button>
+            <div class="recording-indicator" id="recordingIndicator">
+                <div class="pulse"></div>
+                <span>Recording...</span>
+            </div>
+        </div>
+        
+        <div class="error-msg" id="errorMsg"></div>
+        <div class="success-msg" id="successMsg"></div>
+        
+        <div class="text-input-section">
+            <label for="recognizedText">Recognized Text:</label>
+            <div class="text-display" id="recognizedText">
+                Start recording to see the text here...
+            </div>
+        </div>
+        
+        <div class="signs-section">
+            <h3>Sign Language Letters:</h3>
+            <div class="signs-gallery" id="signsGallery">
+                <div class="no-signs">No text recognized yet. Start recording!</div>
+            </div>
+        </div>
+        
+        <div class="back-link">
+            <a href="/">← Back to Home</a>
+        </div>
+    </div>
+    
+    <script>
+        const startBtn = document.getElementById('startBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const recognizedText = document.getElementById('recognizedText');
+        const signsGallery = document.getElementById('signsGallery');
+        const errorMsg = document.getElementById('errorMsg');
+        const successMsg = document.getElementById('successMsg');
+        const recordingIndicator = document.getElementById('recordingIndicator');
+        
+        let recognition;
+        let isListening = false;
+        
+        // Initialize Web Speech API
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.language = 'en-US';
+            
+            recognition.onstart = function() {
+                isListening = true;
+                startBtn.disabled = true;
+                recordingIndicator.classList.add('active');
+                hideMessage('error');
+                hideMessage('success');
+            };
+            
+            recognition.onresult = function(event) {
+                let transcript = '';
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    transcript += event.results[i][0].transcript;
+                }
+                
+                if (transcript) {
+                    displayText(transcript);
+                    displaySigns(transcript);
+                    showMessage('success', '✓ Text recognized successfully!');
+                }
+            };
+            
+            recognition.onerror = function(event) {
+                showMessage('error', '❌ Error: ' + event.error);
+            };
+            
+            recognition.onend = function() {
+                isListening = false;
+                startBtn.disabled = false;
+                recordingIndicator.classList.remove('active');
+            };
+        } else {
+            showMessage('error', 'Speech Recognition not supported in this browser. Please use Chrome, Edge, or Safari.');
+            startBtn.disabled = true;
+        }
+        
+        startBtn.addEventListener('click', function() {
+            if (isListening) {
+                recognition.stop();
+            } else {
+                recognition.start();
+            }
+        });
+        
+        clearBtn.addEventListener('click', function() {
+            recognizedText.textContent = 'Start recording to see the text here...';
+            signsGallery.innerHTML = '<div class="no-signs">No text recognized yet. Start recording!</div>';
+            hideMessage('error');
+            hideMessage('success');
+        });
+        
+        function displayText(text) {
+            recognizedText.textContent = text;
+        }
+        
+        function displaySigns(text) {
+            const letters = text.toLowerCase().replace(/\s/g, '').split('');
+            const uniqueLetters = [...new Set(letters)];
+            
+            if (uniqueLetters.length === 0) {
+                signsGallery.innerHTML = '<div class="no-signs">No valid letters found.</div>';
+                return;
+            }
+            
+            signsGallery.innerHTML = '';
+            uniqueLetters.forEach(letter => {
+                if (/[a-z0-9]/.test(letter)) {
+                    const signItem = document.createElement('div');
+                    signItem.className = 'sign-item';
+                    
+                    // Try to load sign image
+                    const imagePath = `static/signs/${letter}.png`;
+                    
+                    signItem.innerHTML = `
+                        <div class="sign-letter">${letter.toUpperCase()}</div>
+                        <img src="${imagePath}" alt="${letter}" class="sign-image" onerror="this.style.display='none'">
+                    `;
+                    
+                    signsGallery.appendChild(signItem);
+                }
+            });
+        }
+        
+        function showMessage(type, text) {
+            const msg = type === 'error' ? errorMsg : successMsg;
+            msg.textContent = text;
+            msg.classList.add('show');
+        }
+        
+        function hideMessage(type) {
+            const msg = type === 'error' ? errorMsg : successMsg;
+            msg.classList.remove('show');
+        }
+    </script>
+</body>
+</html>
